@@ -30,51 +30,6 @@ if (copyLinkBtns.length) {
   })
 }
 
-// RU-EN
-let dictionary;
-
-if (widgetLanguage === 'ru') {
-  dictionary = {
-    bestOfferPrice: 'Предложение',
-    bestBidPrice: 'Спрос',
-    maxTradePrice: 'Максимум',
-    minPrice: 'Минимум',
-    numberOfTrades: 'Сделок сегодня',
-    volumeOfTrades: 'Количество сегодня',
-    stockCapitalization: 'Капитализация',
-    day: 'День',
-    week: 'Неделя',
-    month: 'Месяц',
-    year: 'Год',
-    wholePeriod: 'Весь период',
-    price: 'Цена',
-    turnover: 'Объем',
-  }
-} else if (widgetLanguage === 'en') {
-  dictionary = {
-    bestOfferPrice: 'Best offer price',
-    bestBidPrice: 'Best bid price',
-    maxTradePrice: 'Max.trade price',
-    minPrice: 'Min.price',
-    numberOfTrades: 'Number of trades',
-    volumeOfTrades: 'Volume of trades, securities',
-    stockCapitalization: 'Stock capitalization',
-    day: 'Day',
-    week: 'Week',
-    month: 'Month',
-    year: 'Year',
-    wholePeriod: 'Whole period',
-    price: 'Price',
-    turnover: 'Turnover',
-  }
-}
-
-let wordsFromDictionary = document.querySelectorAll('[data-dictionary]');
-
-wordsFromDictionary.forEach(word => {
-  word.textContent = dictionary[word.dataset.dictionary]
-})
-
 // Share documents
 let quote = document.querySelector(".quote");
 let quoteDocumentsBtn = document.querySelector('.quote__documents-btn');
@@ -88,23 +43,26 @@ quoteDocumentsBtn.addEventListener('click', () => {
   if (!quoteDocumentsList.classList.contains('quote__documents-list_active')){
     quote.classList.add('quote--printscreen')
 
-    let options = {
-      height: quote.scrollHeight + 10,
+    let options = {}
+
+    if (document.documentElement.clientWidth > 1024) {
+      options = {
+        height: quote.scrollHeight + 10,
+      };
+    } else {
+      options = {
+        windowWidth: 1024,
+      };
     }
     
     // pdf, png
     html2canvas(quote, options).then(canvas => {
-      quoteDocumentsListBtnPng.download = "VKCO.png";
       quoteDocumentsListBtnPng.href = canvas.toDataURL()
-
       quote.classList.remove('quote--printscreen')
       quoteDocumentsList.classList.toggle('quote__documents-list_active')
 
       quoteCanvasData.width = canvas.width
       quoteCanvasData.height = canvas.height
-
-      console.log(canvas.width, canvas.height)
-
     });
 
   } else {
@@ -128,9 +86,7 @@ quoteDocumentsListBtnPdf.addEventListener('click', () => {
   let docWidth = ConvertPxToMM(quoteCanvasData.width)
   let docHeight = ConvertPxToMM(quoteCanvasData.height) 
 
-  let orientation = quoteCanvasData.width >= quoteCanvasData.height ? 'l' : 'p';
-
-  const doc = new jsPDF(orientation, 'mm', [docWidth, docHeight]);
+  const doc = new jsPDF('l', 'mm', [docWidth, docHeight]);
   
   doc.addImage(quoteDocumentsListBtnPng.href, 0, 0);
   doc.save("VKCO.pdf");
@@ -148,7 +104,7 @@ quoteDocumentsListBtnXlsx.addEventListener('click', () => {
   
   wb.SheetNames.push("VKCO");
 
-  let ws_data = widgetLanguage === 'ru' ? [['Дата' , 'Цена', 'Объем']] : [['Date' , 'Price', 'Turnover']];
+  let ws_data = [['Дата' , 'Цена', 'Объем']];
 
   currentLabels.forEach((item, i) => {
     let newRow = [];
@@ -181,9 +137,7 @@ document.addEventListener('click', () => {
 })
 
 // MOEX API
-let quoteWrapper = document.querySelector('.quote__wrapper')
 let quotePeriodItem = document.querySelectorAll('.quote__period-item');
-let quoteGraph = document.querySelector('.quote__graph');
 let quoteGraphBar = document.querySelector('.quote__graph-bar');
 let quoteGraphNavigationRangeButton = document.querySelectorAll('.quote__graph-navigation-range-button');
 let quoteGraphNavigationRangeButtonMax = document.querySelector('.quote__graph-navigation-range-button--max');
@@ -197,11 +151,6 @@ let quoteGraphNavigationControlButton = document.querySelectorAll('[data-navigat
 let quoteGraphNavigationScrollOverlay = document.querySelector('.quote__graph-navigation-scroll-overlay')
 let quoteGraphNavigationScrollButtonLess = document.querySelector('.quote__graph-navigation-scroll-button--less');
 let quoteGraphNavigationScrollButtonMore = document.querySelector('.quote__graph-navigation-scroll-button--more');
-let quoteGraphCurrentLabels = document.querySelector('.quote__graph-current-labels');
-let quoteGraphLineTicks = document.querySelector('.quote__graph-ticks--line');
-let quoteGraphBarTicks = document.querySelector('.quote__graph-ticks--bar');
-let quoteGraphTicks = document.querySelectorAll('.quote__graph-ticks');
-let quoteGraphWrapper = document.querySelectorAll('.quote__graph-wrapper');
 
 let labels = [];
 let values = [];
@@ -217,7 +166,6 @@ let isRepeatedHistoryRequest = false;
 urls = {
   headerData: 'https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/VKCO.json',
   historyData: 'https://iss.moex.com/iss/history/engines/stock/markets/shares/boards/TQBR/securities/VKCO.json?from=',
-  dailyData: 'https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities/VKCO/candles.json?interval=60&from=',
 }
 
 // Get, update data for header
@@ -278,24 +226,12 @@ async function getHistoryData(url, type, date = '') {
         let lastDate = labels[labels.length - 1]
         getHistoryData(urls.historyData, 'get', lastDate);
       } else {
-        currentLabels = labels
-        currentValues = values
-        currentVolume = volume
-
         createGraphs()
         initNavigation()
 
-        updateCurrentLabelsList(labels)
-        updateTicks()
-        updateSizes()
-
-        setTimeout(() => {
-          lineChart.update();
-          barChart.update();
-
-          updateTicks()
-          updateSizes()
-        }, 100);
+        currentLabels = labels
+        currentValues = values
+        currentVolume = volume
       }
     }
     if (type === 'update') {
@@ -304,34 +240,17 @@ async function getHistoryData(url, type, date = '') {
         currentValues = [];
         currentVolume = [];
       }
+      newData.history.data.forEach(array => {
+        currentLabels.push(array[1])
+        currentValues.push(array[9])
+        currentVolume.push(array[4])
+      })
 
-      if (url === urls.historyData) {
-        newData.history.data.forEach(array => {
-          currentLabels.push(array[1])
-          currentValues.push(array[9])
-          currentVolume.push(array[4])
-        })
-  
-        if (newData.history.data.length === 100) {
-          let lastDate = currentLabels[currentLabels.length - 1]
-          getHistoryData(urls.historyData, 'update', lastDate);
-          isRepeatedHistoryRequest = true
-        } else {
-          updateGraph(currentLabels, currentValues, currentVolume);
-          updateNavigation()
-          isRepeatedHistoryRequest = false
-        }
-      }
-      if (url === urls.dailyData) {
-
-        newData.candles.data.forEach((array, i) => {
-          if (currentLabels.length < 10) {
-            currentLabels.push(newData.candles.data[newData.candles.data.length - 1 - 10 + i][6])
-            currentValues.push(newData.candles.data[newData.candles.data.length - 1 - 10 + i][0])
-            currentVolume.push(newData.candles.data[newData.candles.data.length - 1 - 10 + i][5])
-          }
-        })
-  
+      if (newData.history.data.length === 100) {
+        let lastDate = currentLabels[currentLabels.length - 1]
+        getHistoryData(urls.historyData, 'update', lastDate);
+        isRepeatedHistoryRequest = true
+      } else {
         updateGraph(currentLabels, currentValues, currentVolume);
         updateNavigation()
         isRepeatedHistoryRequest = false
@@ -341,40 +260,61 @@ async function getHistoryData(url, type, date = '') {
 }
 
 function createGraph(type, labels, values, volume) {
-  if (type === 'line') {
+  if (type === 'both') {
     const data = {
       labels: labels,
-      datasets: [{
-        borderColor: '#0077ff',
-        data: values,
-        pointBackgroundColor: 'transparent',
-        pointBorderColor: 'transparent',
-      }]
+      datasets: [
+        {
+          label: 'Цена',
+          borderColor: '#0077ff',
+          backgroundColor: '#0077ff',
+          data: values,
+          pointBackgroundColor: 'transparent',
+          pointBorderColor: 'transparent',
+        },
+        {
+          label: 'Объем',
+          backgroundColor: '#FF3583',
+          borderColor: '#FF3583',
+          data: volume,
+          yAxisID: 'y2',
+          type: 'bar',
+        }
+      ]
     };
-  
+
     const config = {
-      type: type,
+      type: 'line',
       data: data,
       options: {
-        responsive: document.documentElement.clientWidth < 768 ? false : true,
         elements: {
           point: {
             radius: 10,
           }, 
         },
-        scales: {
-          xAxis: {
+        responsive: true,
+        plugins: {
+          title: {
             display: false,
           },
-          yAxis: {
+        },
+        scales: {
+          xAxis: {
+            grid: {
+              display: false,
+            }
+          },
+          y: {
+            type: 'linear',
             position: 'right',
+            stack: 'both',
+            stackWeight: 2,
             grid: {
               borderColor: "transparent",
               color: '#A8A8A8',
               borderDash: [2, 2],
             },
             ticks: {
-              display: false,
               color: '#050B15',
               z: 1,
               font: {
@@ -382,12 +322,42 @@ function createGraph(type, labels, values, volume) {
                 family: "'VK Sans Display', 'sans-serif', 'Arial'",
               },
               padding: 0,
-            }
+            },
           },
+          y2: {
+            type: 'linear',
+            position: 'right',
+            stack: 'both',
+            stackWeight: 1,
+            grid: {
+              borderColor: "transparent",
+              color: '#A8A8A8',
+              borderDash: [2, 2],
+            },
+            ticks: {
+              color: '#050B15',
+              backdropColor: '#FFFFFF',
+              showLabelBackdrop: true,
+              z: 2,
+              font: {
+                size: 20,
+                family: "'VK Sans Display', 'sans-serif', 'Arial'",
+              },
+              padding: 0,
+            }
+          }
         },
         plugins: {
           legend: {
-            display: false,
+            labels: {
+              boxWidth: 12,
+              boxHeight: 12,
+              font: {
+                size: 16,
+                family: "'VK Sans Text', 'sans-serif', 'Arial'",
+              },
+              padding: 20,
+            }
           },
           tooltip: {
             // Disable the on-canvas tooltip
@@ -427,10 +397,10 @@ function createGraph(type, labels, values, volume) {
                 let tooltipModelValue = '';
                 let tooltipModelVolume = ''; 
 
-                currentLabels.map((item, i) => {                
+                labels.map((item, i) => {                
                   if (item == tooltipModel.title) {
-                    tooltipModelValue = currentValues[i]
-                    tooltipModelVolume = currentVolume[i]
+                    tooltipModelValue = values[i]
+                    tooltipModelVolume = volume[i]
                   }
                 })
 
@@ -441,10 +411,10 @@ function createGraph(type, labels, values, volume) {
                   <div style="background: #FFFFFF; padding: 10px 15px; border: 1px solid #050B15; font-family: var(--font-family-primary); font-size: 16px;">
                     <div>${tooltipModel.title}</div>
                     <div style="margin: 15px 0 10px; white-space: nowrap;">
-                      <span style="color: #0077FF; margin-right: 10px">${widgetLanguage === 'ru' ? 'Цена' : 'Price'}</span> <span style="font-weight: 500; font-size: 22px;">${tooltipModelValue}</span>
+                      <span style="color: #0077FF; margin-right: 10px">Цена</span> <span style="font-weight: 500; font-size: 22px;">${tooltipModelValue}</span>
                     </div>
                     <div style="white-space: nowrap;">
-                      <span style="color: #FF3583; margin-right: 10px">${widgetLanguage === 'ru' ? 'Объем' : 'Turnover'}</span> <span style="font-weight: 500; font-size: 22px;">${tooltipModelVolume}</span>
+                      <span style="color: #FF3583; margin-right: 10px">Объем</span> <span style="font-weight: 500; font-size: 22px;">${tooltipModelVolume}</span>
                     </div>
                   </div>
                   `
@@ -470,134 +440,9 @@ function createGraph(type, labels, values, volume) {
         },
       },
     };
-    
-    lineChart = new Chart(
-      document.getElementById('lineChart'),
-      config
-    );
-  }
-  if (type === 'bar') {
-    const data = {
-      labels: labels,
-      datasets: [{
-        backgroundColor: '#FF3583',
-        borderColor: '#FF3583',
-        data: volume,
-      }]
-    };
-  
-    const config = {
-      type: type,
-      data: data,
-      options: {
-        responsive: document.documentElement.clientWidth < 768 ? false : true,
-        scales: {
-          xAxis: {
-            display: false,
-          },
-          yAxis: {
-            position: 'right',
-            grid: {
-              borderColor: "transparent",
-              color: '#A8A8A8',
-              borderDash: [2, 2],
-            },
-            ticks: {
-              display: false,
-              color: '#050B15',
-              z: 1,
-              font: {
-                size: 20,
-                family: "'VK Sans Display', 'sans-serif', 'Arial'",
-              },
-              padding: 0,
-            }
-          },
-        },
-        plugins: {
-          legend: {
-            display: false,
-          },
-          tooltip: {
-            // Disable the on-canvas tooltip
-            enabled: false,
 
-            external: function(context) {
-                // Tooltip Element
-                let tooltipEl = document.getElementById('chartjs-tooltip');
-
-                // Create element on first render
-                if (!tooltipEl) {
-                    tooltipEl = document.createElement('div');
-                    tooltipEl.id = 'chartjs-tooltip';
-                    tooltipEl.innerHTML = '<table></table>';
-                    document.body.appendChild(tooltipEl);
-                }
-
-                // Hide if no tooltip
-                const tooltipModel = context.tooltip;
-                if (tooltipModel.opacity === 0) {
-                    tooltipEl.style.opacity = 0;
-                    return;
-                }
-
-                // Set caret Position
-                tooltipEl.classList.remove('above', 'below', 'no-transform');
-                if (tooltipModel.yAlign) {
-                    tooltipEl.classList.add(tooltipModel.yAlign);
-                } else {
-                    tooltipEl.classList.add('no-transform');
-                }
-
-                function getBody(bodyItem) {
-                    return bodyItem.lines;
-                }
-
-                let tooltipModelValue = '';
-                let tooltipModelVolume = ''; 
-
-                currentLabels.map((item, i) => {                
-                  if (item == tooltipModel.title) {
-                    tooltipModelValue = currentValues[i]
-                    tooltipModelVolume = currentVolume[i]
-                  }
-                })
-
-                // Set Text
-                if (tooltipModel.body) {
-                  tooltipEl.innerHTML = 
-                  `
-                  <div style="background: #FFFFFF; padding: 10px 15px; border: 1px solid #050B15; font-family: var(--font-family-primary); font-size: 16px;">
-                    <div>${tooltipModel.title}</div>
-                    <div style="margin: 15px 0 10px; white-space: nowrap;">
-                      <span style="color: #0077FF; margin-right: 10px">${widgetLanguage === 'ru' ? 'Цена' : 'Price'}</span> <span style="font-weight: 500; font-size: 22px;">${tooltipModelValue}</span>
-                    </div>
-                    <div style="white-space: nowrap;">
-                      <span style="color: #FF3583; margin-right: 10px">${widgetLanguage === 'ru' ? 'Объем' : 'Turnover'}</span> <span style="font-weight: 500; font-size: 22px;">${tooltipModelVolume}</span>
-                    </div>
-                  </div>
-                  `
-                }
-
-                const position = context.chart.canvas.getBoundingClientRect();
-                const bodyFont = Chart.helpers.toFont(tooltipModel.options.bodyFont);
-
-                // Display, position, and set styles for font
-                tooltipEl.style.opacity = 1;
-                tooltipEl.style.position = 'absolute';
-                tooltipEl.style.left = position.left + window.pageXOffset + tooltipModel.caretX + 'px';
-                tooltipEl.style.top = position.top + window.pageYOffset + tooltipModel.caretY + 'px';
-                tooltipEl.style.font = bodyFont.string;
-                tooltipEl.style.padding = tooltipModel.padding + 'px ' + tooltipModel.padding + 'px';
-                tooltipEl.style.pointerEvents = 'none';
-            }
-          },
-        },
-      },
-    };
-    
-    barChart = new Chart(
-      document.getElementById('barChart'),
+    bothChart = new Chart(
+      document.getElementById('bothChart'),
       config
     );
   }
@@ -615,7 +460,7 @@ function createGraph(type, labels, values, volume) {
       type: 'line',
       data: data,
       options: {
-        responsive: document.documentElement.clientWidth < 768 ? false : true,
+        responsive: true,
         elements: {
           point: {
             radius: 0,
@@ -653,106 +498,17 @@ function createGraph(type, labels, values, volume) {
   }
 }
 
+function updateGraph(labels, values, volume) {
+  bothChart.data.labels = labels;
+  bothChart.data.datasets[0].data = values;
+  bothChart.data.datasets[1].data = volume;
+  bothChart.update();
+}
+
 function createGraphs() {
   createGraph("navigation", labels, values);
-  createGraph("line", labels, values, volume);
-  createGraph("bar", labels, values, volume);
+  createGraph("both", labels, values, volume);
 }
-
-function updateGraph(labels, values, volume) {
-  lineChart.data.labels = labels;
-  lineChart.data.datasets[0].data = values;
-  barChart.data.labels = labels;
-  barChart.data.datasets[0].data = volume;
-  lineChart.update();
-  barChart.update();
-
-  updateCurrentLabelsList(labels)
-  updateTicks()
-  updateSizes()
-
-  setTimeout(() => {
-    lineChart.update();
-    barChart.update();
-
-    updateTicks()
-    updateSizes()
-  }, 100);
-}
-
-function updateCurrentLabelsList(currentLabels) {
-  quoteGraphCurrentLabels.textContent = '';
-  let updatedIndexesList = [];
-
-  currentLabels.forEach((item, i) => {
-    if (i <= 10) {
-      let newIndex = Math.round(((currentLabels.length - 1) * 10 * i) / 100);
-
-      let checkRepeatedIndex = true;
-      let currentIndex = newIndex;
-      
-      while (checkRepeatedIndex) {
-        if (updatedIndexesList.indexOf(currentIndex) === -1) {
-          updatedIndexesList.push(currentIndex)
-          checkRepeatedIndex = false
-        } else {
-          currentIndex = currentIndex + 1 < currentLabels.length - 1 ? currentIndex + 1 : currentLabels.length - 1
-        }
-      }
-      
-      let newLabel = document.createElement('li')
-      newLabel.textContent = currentLabels[currentIndex]
-      newLabel.classList.add('quote__graph-current-label')
-      quoteGraphCurrentLabels.append(newLabel)
-    }
-  })
-}
-
-function updateTicks() {
-  quoteGraphLineTicks.textContent = '';
-  quoteGraphBarTicks.textContent = '';
-
-  let currentLineTicks = lineChart.scales.yAxis.ticks;
-  let currentBarTicks = barChart.scales.yAxis.ticks;
-
-  currentLineTicks.forEach((item) => {
-    let newTick = document.createElement('li')
-    newTick.textContent = item.value
-    newTick.classList.add('quote__graph-tick')
-    quoteGraphLineTicks.append(newTick)
-  })
-
-  currentBarTicks.forEach((item) => {
-    let newTick = document.createElement('li')
-    newTick.textContent = item.value
-    newTick.classList.add('quote__graph-tick')
-    quoteGraphBarTicks.append(newTick)
-  })
-}
-
-function updateSizes() {
-  let ticksWidth = quoteGraphLineTicks.clientWidth > quoteGraphBarTicks.clientWidth ? quoteGraphLineTicks.clientWidth : quoteGraphBarTicks.clientWidth;
-
-  quoteGraphTicks.forEach(item => {
-    item.style.minWidth = ticksWidth + 'px';
-  })
-
-  let graphsWidth = quoteWrapper.clientWidth - ticksWidth
-
-  quoteGraphWrapper.forEach(wrapper => {
-    if (wrapper.closest('.quote__graph-line')) {
-      wrapper.style.width = graphsWidth + 11 + 'px';
-    } else {
-      wrapper.style.width = graphsWidth + 'px';
-    }
-    
-  })
-}
-
-window.addEventListener('resize', () => {
-  updateGraph(currentLabels, currentValues, currentVolume);
-  updateNavigation()
-})
 
 async function firstRender() {
   await getHistoryData(urls.historyData, 'get');
@@ -776,32 +532,26 @@ quotePeriodItem.forEach((item) => {
     let date = '';
     let dateTimestamp;
     let period;
-    let url;
 
     switch (item.dataset.period) {
       case "all":
         date = '';
-        url = urls.historyData;
         break;
 
       case "year":
         period = 365 * 24 * 60 * 60 * 1000;
-        url = urls.historyData;
         break;
 
       case "month":
         period = 30.5 * 24 * 60 * 60 * 1000;
-        url = urls.historyData;
         break;
 
       case "week":
         period = 7 * 24 * 60 * 60 * 1000;
-        url = urls.historyData;
         break;
 
       case "day":
-        period = 4 * 24 * 60 * 60 * 1000;
-        url = urls.dailyData;
+        period = 1 * 24 * 60 * 60 * 1000;
         break;
     }
 
@@ -812,7 +562,7 @@ quotePeriodItem.forEach((item) => {
       date = formatedFullDate;
     }
 
-    await getHistoryData(url, 'update', date)
+    await getHistoryData(urls.historyData, 'update', date)
   })
 })
 
@@ -965,10 +715,9 @@ function updateScrollPosition() {
 
 function updateNavigation() {
   quoteGraphNavigationRangeButtonMax.style.left = '100%';
-  quoteGraphNavigationRangeLineMax.style.width = 0;0
+  quoteGraphNavigationRangeLineMax.style.width = 0;
 
-  let firstLabel = currentLabels[0].split(' ')[0]
-  let newStartIndex = labels.indexOf(firstLabel)
+  let newStartIndex = labels.indexOf(currentLabels[0])
 
   if (newStartIndex >= 0) {
     quoteGraphNavigationRangeButtonMin.style.left = `${newStartIndex * 100 / labels.length}%`;

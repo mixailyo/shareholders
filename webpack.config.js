@@ -9,7 +9,7 @@ module.exports = {
   context: path.resolve(__dirname, 'source'),
   mode: 'development',
   entry: {
-    main: './js/main.js',
+    main: ['babel-polyfill', './js/main.js'],
     vendor: './js/vendor.js',
   },
   devtool: isDev ? 'source-map' : false,

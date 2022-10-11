@@ -1,0 +1,149 @@
+
+<div class="container container_content">
+  <section class="quote">
+    <div class="quote__wrapper">
+      <div class="preloader" data-html2canvas-ignore><div class="lds-ring"><div></div><div></div><div></div><div></div></div></div>
+      <div class="quote__date" data-variable="UPDATETIME">-</div>
+      <div class="quote__header">
+        <div class="quote__current-price">
+          <div class="quote__current-price-value" data-variable="LAST">-</div>
+          <div class="quote__current-price-right-wrapper">
+            <div class="quote__current-price-change">
+              <span class="quote__current-price-change-number" data-variable="LASTTOPREVPRICE">-</span>%
+            </div>
+            <div class="quote__current-price-currency">RUB</div>
+          </div>
+        </div>
+        <div class="quote__data">
+          <ul class="quote__data-list">
+            <li class="quote__data-item">
+              <p class="quote__data-item-name"><span data-dictionary="bestOfferPrice">Предложение</span>: </p>
+              <p class="quote__data-item-value" data-variable="OFFER">-</p>
+            </li>
+            <li class="quote__data-item">
+              <p class="quote__data-item-name"><span data-dictionary="maxTradePrice">Максимум</span>: </p>
+              <p class="quote__data-item-value" data-variable="HIGH">-</p>
+            </li>
+            <li class="quote__data-item">
+              <p class="quote__data-item-name"><span data-dictionary="numberOfTrades">Сделок сегодня</span>: </p>
+              <p class="quote__data-item-value" data-variable="NUMTRADES">-</p>
+            </li>
+            <li class="quote__data-item">
+              <p class="quote__data-item-name"><span data-dictionary="stockCapitalization">Капитализация</span>: </p>
+              <p class="quote__data-item-value" data-variable="ISSUECAPITALIZATION">—</p>
+            </li>
+            <li class="quote__data-item">
+              <p class="quote__data-item-name"><span data-dictionary="bestBidPrice">Спрос</span>: </p>
+              <p class="quote__data-item-value" data-variable="BID">-</p>
+            </li>
+            <li class="quote__data-item">
+              <p class="quote__data-item-name"><span data-dictionary="minPrice">Минимум</span>: </p>
+              <p class="quote__data-item-value" data-variable="LOW">-</p>
+            </li>
+            <li class="quote__data-item">
+              <p class="quote__data-item-name"><span data-dictionary="volumeOfTrades">Количество сегодня</span>: </p>
+              <p class="quote__data-item-value" data-variable="VOLTODAY">-</p>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div class="quote__controls">
+        <div class="quote__controls-wrapper">
+          <ul class="quote__period">
+            <li class="quote__period-item" data-period="day"><span data-dictionary="day">День</span></li>
+            <li class="quote__period-item" data-period="week"><span data-dictionary="week">Неделя</span></li>
+            <li class="quote__period-item" data-period="month"><span data-dictionary="month">Месяц</span></li>
+            <li class="quote__period-item" data-period="year"><span data-dictionary="year">Год</span></li>
+            <li class="quote__period-item quote__period-item_active" data-period="all" data-dictionary="wholePeriod"><span>Весь период</span></li>
+          </ul>
+          <ul class="quote__share" data-html2canvas-ignore>
+            <li class="quote__share-item">
+              <button class="quote__more quote__share-btn">
+                <img src="img/quote-more.svg" width="11" height="11" />
+              </button>
+            </li>
+            <li class="quote__share-item">
+              <div class="quote__documents">
+                <button class="quote__documents-btn quote__share-btn">
+                  <img src="img/quote-document-list-btn.svg" width="15" height="19" />
+                </button>
+                <ul class="quote__documents-list">
+                  <li class="quote__documents-list-item">
+                    <button class="quote__documents-list-btn quote__documents-list-btn--pdf">
+                      <img src="img/quote-document-pdf.svg" alt="Download pdf" width="22" height="27" />
+                    </button>
+                  </li>
+                  <li class="quote__documents-list-item">
+                    <a href="#" class="quote__documents-list-btn quote__documents-list-btn--png" download>
+                      <img src="img/quote-document-png.svg" alt="Download png" width="22" height="27" />
+                    </a>
+                  </li>
+                  <li class="quote__documents-list-item">
+                    <button class="quote__documents-list-btn quote__documents-list-btn--xlsx">
+                      <img src="img/quote-document-xlsx.svg" alt="Download xlsx" width="22" height="27" />
+                    </button>
+                  </li>
+                </ul>
+              </div>
+            </li>
+            <li class="quote__share-item">
+              <button class="quote__share-link quote__share-btn" data-copy-link-btn>
+                <img src="img/quote-share-link.svg" width="18" height="18" />
+              </button>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div class="quote__graph">
+        <div class="quote__graph-line">
+          <h2 class="quote__graph-title"><span data-dictionary="price">Цена</span></h2>
+          <div class="quote__graph-wrapper">
+            <canvas id="lineChart" width="1341" height="420"></canvas>
+          </div>
+          <ul class="quote__graph-ticks quote__graph-ticks--line"></ul>
+        </div>
+        <div class="quote__graph-bar">
+          <h2 class="quote__graph-title"><span data-dictionary="turnover">Объем</span></h2>
+          <div class="quote__graph-wrapper">
+            <canvas id="barChart" width="1330" height="210"></canvas>
+            <ul class="quote__graph-current-labels"></ul>
+          </div>
+          <ul class="quote__graph-ticks quote__graph-ticks--bar"></ul>
+        </div>
+        <div class="quote__graph-navigation-wrapper">
+          <div class="quote__graph-navigation">
+            <canvas id="navigationChart" width="1330" height="66"></canvas>
+            <div class="quote__graph-navigation-range">
+              <button class="quote__graph-navigation-range-button quote__graph-navigation-range-button--min" data-navigation-control>
+                <img class="quote__graph-navigation-range-button-img" src="img/quote-navigation-btn.svg" />
+              </button>
+              <button class="quote__graph-navigation-range-button quote__graph-navigation-range-button--max" data-navigation-control>
+                <img class="quote__graph-navigation-range-button-img" src="img/quote-navigation-btn.svg" />
+              </button>
+              <div class="quote__graph-navigation-range-lines">
+                <div class="quote__graph-navigation-range-line quote__graph-navigation-range-line--min"></div>
+                <div class="quote__graph-navigation-range-line quote__graph-navigation-range-line--max"></div>
+              </div>
+            </div>
+          </div>
+          <div class="quote__graph-navigation-scroll-wrapper">
+            <button class="quote__graph-navigation-scroll-button quote__graph-navigation-scroll-button--less">
+              <img src="img/quote-scroll-btn.svg" />
+            </button>
+            <div class="quote__graph-navigation-scroll-overlay">
+              <button class="quote__graph-navigation-scroll" data-navigation-control></button>
+            </div>
+            <button class="quote__graph-navigation-scroll-button quote__graph-navigation-scroll-button--more">
+              <img src="img/quote-scroll-btn.svg" />
+            </button>
+          </div>
+          <ul class="quote__graph-navigation-labels"></ul>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const widgetLanguage = 'ru';
+    </script>
+  </section>
+</div>
